@@ -7,13 +7,14 @@ import { generateAccessToken, generateRefreshToken } from "../utils/token.js";
 
 const register = async(req, res) => {
     try {
-        const { name, email, password } = req.body;
+        const { name, email, password, role} = req.body;
         const salt = await bcrypt.genSalt(10);
         const hashedPass = await bcrypt.hash(String(password), salt);
         const user = await User.create({
             name,
             email, 
-            password: hashedPass
+            password: hashedPass,
+            role
         });
         res.status(201).json({
             message: "User registered successfully",
