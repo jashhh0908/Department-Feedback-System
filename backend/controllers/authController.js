@@ -1,6 +1,8 @@
 import mongoose from "mongoose";
-import Admin from "../models/admin.model.js";
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+
+import Admin from "../models/admin.model.js";
 import { generateAccessToken, generateRefreshToken } from "../utils/token.js";
 
 const register = async(req, res) => {
@@ -68,8 +70,30 @@ const logout = async(req, res) => {
     }
 }
 
+const refreshAccessToken = async(req, res) => {
+    try {
+        const refreshToken = req.cookies.refreshToken;
+        if(!refreshToken)
+            return res.status(401).json({error: "Unauthorized"});
+
+        console.log('Token:', refreshToken);
+        console.log('Secret:', process.env.JWT_REFRESH_SECRET);
+        const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+        const admin = await Admin.findById(decoded.id);
+        if(!admin)
+            return res.status(401).json({error: "Unauthorized"});
+        const accessToken = generateAccessToken(admin._id);
+        res.status(200).json({
+            message: "New access token generated",
+            token: accessToken});
+    } catch (error) {
+        console.error("Error in refreshAccessToken: ", error);
+        res.status(400).json({error: "Internal server error"});
+    }
+}
 export { 
     register, 
     login,
-    logout
+    logout,
+    refreshAccessToken
 };
