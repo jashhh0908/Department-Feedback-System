@@ -1,3 +1,5 @@
+//Deprecated: this file has been replaced by admin.model.js
+//this file will be removed 
 import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({

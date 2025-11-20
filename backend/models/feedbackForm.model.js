@@ -9,8 +9,12 @@ const QuestionSchema = new mongoose.Schema({
     },
     options: { 
         type: [String], 
-        required: function() {
-        return this.questionType === 'multiple-choice';
+        validate: {
+            validator: function (arr) {
+                if(this.questionType !== 'multiple-choice') return true;
+                return Array.isArray(arr) && arr.length > 0;
+            },
+            message: "Multiple-choice questions must include at least one option"
         }
     }
 });
