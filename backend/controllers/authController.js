@@ -16,8 +16,8 @@ const register = async(req, res) => {
             password: hashedPass
         });
         res.status(201).json({
-            message: "New admin registered successfully",
-            admin
+            message: "User registered successfully",
+            user
         });
     } catch (error) {
         console.error("Error in register controller: ", error);
@@ -32,12 +32,12 @@ const login = async(req, res) => {
         if(!user) 
             return res.status(400).json({ message: "Invalid email or password"});
         
-        const pass_check = await bcrypt.compare(password, admin.password);
+        const pass_check = await bcrypt.compare(password, user.password);
         if(!pass_check)
             return res.status(400).json({ message: "Invalid email or password"});
         
-        const accessToken = generateAccessToken(admin._id);
-        const refreshToken = generateRefreshToken(admin._id);
+        const accessToken = generateAccessToken(user._id, user.role);
+        const refreshToken = generateRefreshToken(user._id, user.role);
 
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
@@ -49,9 +49,10 @@ const login = async(req, res) => {
         res.status(200).json({
             message: "Login successful",
             token: accessToken,
-            adminInfo: {
-                name: admin.name,
-                email: admin.email
+            userInfo: {
+                name: user.name,
+                email: user.email,
+                role: user.role
             }
         });
     } catch (error) {
@@ -79,10 +80,10 @@ const refreshAccessToken = async(req, res) => {
         console.log('Token:', refreshToken);
         console.log('Secret:', process.env.JWT_REFRESH_SECRET);
         const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
-        const admin = await Admin.findById(decoded.id);
-        if(!admin)
+        const user = await User.findById(decoded.id);
+        if(!user)
             return res.status(401).json({error: "Unauthorized"});
-        const accessToken = generateAccessToken(admin._id);
+        const accessToken = generateAccessToken(user._id, user.role);
         res.status(200).json({
             message: "New access token generated",
             token: accessToken});
