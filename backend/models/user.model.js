@@ -1,28 +1,14 @@
-//Deprecated: this file has been replaced by admin.model.js
-//this file will be removed 
 import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
     name : { type: String, required: true },
     email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
+    password: { type: String, required: true }, 
     role: {
         type: String,
-        enum: ['student', 'alumni', 'employer' ,'admin'],
-        required: true,
-    },
-    batchYear: {
-        type: Number,
-        required: function() {
-            return this.role === 'student' || this.role === 'alumni';
-        },
-    },
-    companyName: {
-        type: String,
-        required: function() {
-            return this.role === 'employer';
-        }
-    }, 
+        enum: ['user', 'admin'],
+        default: 'user'
+    }
 }, { timestamps: true });
 
 const User = mongoose.model('User', userSchema);
