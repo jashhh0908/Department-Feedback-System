@@ -57,7 +57,19 @@ const login = async(req, res) => {
         res.status(500).json({error: "Internal server error"});
     }
 }
+
+const logout = async(req, res) => {
+    try {
+        res.clearCookie("refreshToken");
+        res.status(200).json({message: "Logged out successfully"});
+    } catch (error) {
+        console.error("Error in logout: ", error);
+        res.status(400).json({error: "Internal server error"});
+    }
+}
+
 export { 
     register, 
-    login
+    login,
+    logout
 };
