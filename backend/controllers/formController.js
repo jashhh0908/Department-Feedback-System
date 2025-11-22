@@ -57,8 +57,30 @@ const getFormById = async(req, res) => {
     }
 }
 
+const updateForm = async(req, res) => {
+    try {
+        const {title, description, targetAudience, questions} = req.body;
+        const formID = req.params.id;
+        const form = await FeedbackForm.findById(formID);
+        if(!form)
+            return res.status(404).json({message: "Form not found"})
+        
+        if(title) form.title = title;
+        if(description) form.description = description;
+        if(targetAudience) form.targetAudience = targetAudience;
+        if(questions) form.questions = questions;
+        await form.save();
+        return res.status(200).json({
+            message: "Form updated successfully",
+            form: form})
+    } catch (error) {
+        console.error("Error in updateForm: ", error);
+        return res.status(500).json({message: "Internal Server Error"})
+    }
+}
 export { 
     createForm,
     getForm,
-    getFormById
+    getFormById, 
+    updateForm
 }
