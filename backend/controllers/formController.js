@@ -29,6 +29,36 @@ const createForm = async(req, res) => {
     }
 }
 
+const getForm = async(req, res) => {
+    try {
+        const forms = await FeedbackForm.find();
+        return res.status(200).json({
+            message: "Forms retrieved successfully",
+            forms: forms})
+    } catch (error) {
+        console.error("Error in getForm: ", error);
+        return res.status(500).json({message: "Internal Server Error"})
+    }
+}
+
+const getFormById = async(req, res) => {
+    try {
+        const formId = req.params.id;
+        const form = await FeedbackForm.findById(formId);
+        if(!form)
+            return res.status(404).json({message: "Form not found"})
+        
+        return res.status(200).json({
+            message: "Form retrieved successfully",
+            form: form})
+    } catch (error) {
+        console.error("Error in getFormById: ", error);
+        return res.status(500).json({message: "Internal Server Error"})
+    }
+}
+
 export { 
-    createForm
+    createForm,
+    getForm,
+    getFormById
 }
