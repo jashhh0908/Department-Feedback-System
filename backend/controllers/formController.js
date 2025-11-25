@@ -199,10 +199,79 @@ const toggleFormStatus = async(req, res) => {
         return res.status(500).json({message: "Internal Server Error"})
     }
 }
+
+//soft-delete - keep the form in DB but not on the UI
+const deactivateForm = async(req, res) => {
+    try {
+        const formID = req.params.id;
+        const form = await FeedbackForm.findById(formID);
+        if(!form)
+            return res.status(404).json({message: "Form not found"});
+        if(!form.isActive)
+            return res.status(400).json({message: "Form is already inactive"});
+        form.isActive = false;
+        form.isArchived = true;
+        form.archivedAt = new Date();
+        await form.save();
+        res.status(200).json({
+            message: "Form deactivated successfully",
+            form
+        });
+    } catch (error) {
+        console.error("Error in deactivateForm: ", error);
+        return res.status(500).json({message: "Internal Server Error"});
+    }
+}
+
+//hard-delete - delete from database
+const deleteForm = async(req, res) => {
+    try {
+        const formID = req.params.id;
+        const form = await FeedbackForm.findById(formID);
+        if(!form)
+            return res.status(404).json({message: "Form not found"});
+        const deleteForm = await FeedbackForm.findByIdAndDelete(formID);
+        if(!deleteForm)
+            return res.status(404).json({message: "Form was not deleted"});
+        return res.status(200).json({
+            message: "Form deleted successfully",
+            form: deleteForm
+        });
+    } catch (error) {
+        console.error("Error in deleteForm: ", error);
+        return res.status(500).json({message: "Internal Server Error"});
+    }
+}
+
+//reactivate form(backend-only)
+const reactivateForm = async (req, res) => {
+    try {
+        const formID = req.params.id;
+        const form = await FeedbackForm.findById(formID);
+        if(!form)
+            return res.status(404).json({message: "Form not found"});
+        if(!form.isArchived)
+            return res.status(400).json({message: "Form is not archived"});
+        form.isActive = true;
+        form.isArchived = false;
+        form.archivedAt = null;
+        await form.save();
+        res.status(200).json({
+            message: "Form reactivated successfully",
+            form
+        });
+    } catch (error) {
+        console.error("Error in unarchiveForm: ", error);
+        return res.status(500).json({message: "Internal Server Error"});
+    }
+}
 export { 
     createForm,
     getForm,
     getFormById, 
     updateForm,
-    toggleFormStatus
+    toggleFormStatus,
+    deactivateForm,
+    deleteForm,
+    reactivateForm
 }
