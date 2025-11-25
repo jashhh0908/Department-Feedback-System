@@ -28,6 +28,8 @@ const feedbackFormSchema = new mongoose.Schema({
     },
     questions: [QuestionSchema],
     isActive: { type: Boolean, default: true },
+    isArchived: { type: Boolean, default: false},
+    archivedAt: { type: Date, default: null},
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
 }, { timestamps: true }
 );
