@@ -99,7 +99,7 @@ const createForm = async(req, res) => {
 
 const getForm = async(req, res) => {
     try {
-        const forms = await FeedbackForm.find();
+        const forms = await FeedbackForm.find({ isArchived: false});
         return res.status(200).json({
             message: "Forms retrieved successfully",
             forms: forms})
@@ -113,9 +113,15 @@ const getFormById = async(req, res) => {
     try {
         const formId = req.params.id;
         const form = await FeedbackForm.findById(formId);
+        const userRole = req.user.role;
         if(!form)
             return res.status(404).json({message: "Form not found"})
-        
+        if(userRole !== form.targetAudience)
+            return res.status(403).json({message: "You are not allowed to access this form"});
+        if(form.isArchived) 
+            return res.status(410).json({message: "This form is no longer available"});
+        if(!form.isActive)
+            return res.status(403).json({message: "Form is closed"});
         return res.status(200).json({
             message: "Form retrieved successfully",
             form: form})
@@ -138,6 +144,8 @@ const updateForm = async(req, res) => {
         const form = await FeedbackForm.findById(formID);
         if(!form)
             return res.status(404).json({message: "Form not found"})
+        if(form.isArchived) 
+            return res.status(410).json({message: "This form is no longer available to modify"});
         if(targetAudience){
             if(!STAKEHOLDERS.includes(targetAudience)) {
                return res.status(400).json({message: "Invalid target audience"});
@@ -181,6 +189,8 @@ const toggleFormStatus = async(req, res) => {
         const form = await FeedbackForm.findById(formID);
         if(!form)
             return res.status(404).json({message: "Form not found"})
+        if(form.isArchived) 
+            return res.status(410).json({message: "This form is no longer available to modify"});
         let status = form.isActive;
         if(!form.isActive) {
             form.isActive = true;
@@ -207,8 +217,8 @@ const deactivateForm = async(req, res) => {
         const form = await FeedbackForm.findById(formID);
         if(!form)
             return res.status(404).json({message: "Form not found"});
-        if(!form.isActive)
-            return res.status(400).json({message: "Form is already inactive"});
+        if(form.isArchived) 
+            return res.status(410).json({message: "This form is no longer available to modify"});
         form.isActive = false;
         form.isArchived = true;
         form.archivedAt = new Date();
@@ -232,7 +242,7 @@ const deleteForm = async(req, res) => {
             return res.status(404).json({message: "Form not found"});
         const deleteForm = await FeedbackForm.findByIdAndDelete(formID);
         if(!deleteForm)
-            return res.status(404).json({message: "Form was not deleted"});
+            return res.status(400).json({message: "Form was not deleted"});
         return res.status(200).json({
             message: "Form deleted successfully",
             form: deleteForm
