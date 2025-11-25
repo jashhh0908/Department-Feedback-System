@@ -174,9 +174,35 @@ const updateForm = async(req, res) => {
         return res.status(500).json({message: "Internal Server Error"})
     }
 }
+
+const toggleFormStatus = async(req, res) => {
+    try {
+        const formID = req.params.id;
+        const form = await FeedbackForm.findById(formID);
+        if(!form)
+            return res.status(404).json({message: "Form not found"})
+        let status = form.isActive;
+        if(!form.isActive) {
+            form.isActive = true;
+            status = "active";
+        } else {
+            form.isActive = false;
+            status = "inactive";
+        }
+        await form.save();
+        res.status(200).json({
+            message: `Form status changed to ${status}` ,
+            form
+        })
+    } catch (error) {
+        console.error("Error in toggleFormStatus: ", error);
+        return res.status(500).json({message: "Internal Server Error"})
+    }
+}
 export { 
     createForm,
     getForm,
     getFormById, 
-    updateForm
+    updateForm,
+    toggleFormStatus
 }
