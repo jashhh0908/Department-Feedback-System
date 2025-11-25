@@ -1,5 +1,12 @@
 import FeedbackForm from "../models/feedbackForm.model.js";
+import sanitize from "sanitize-html";
 
+const clean = (value) => {
+    return sanitize(value, {
+        allowedAttributes: {},
+        allowedTags: []
+    });
+};
 const STAKEHOLDERS = ['student', 'alumni', 'employer'];
 const QUESTION_TYPES = ['multiple-choice', 'rating', 'text'];
 const validateQuestion = (questions) => {
@@ -47,10 +54,10 @@ const createForm = async(req, res) => {
         if(typeof title !== "string" || title.trim() === "") 
             return res.status(400).json({message: "Title must be a non-empty string"});
         
-        const newTitle = title.trim();
+        const newTitle = clean(title.trim());
         if(typeof description !== "string" || description.trim() === "")
             return res.status(400).json({message: "Description must be a non-empty string"});
-        const newDescription = description.trim();
+        const newDescription = clean(description.trim());
         if(!targetAudience || !STAKEHOLDERS.includes(targetAudience)) {
                return res.status(400).json({message: "Invalid target audience"});
         }
@@ -61,11 +68,16 @@ const createForm = async(req, res) => {
         if(!validation.status)
             return res.status(400).json({message: validation.message});
         
+        const sanitized_questions = questions.map(q => ({ 
+            questionText: clean(q.questionText),
+            questionType: q.questionType,
+            options: q.options?.map(option => clean(option))
+        }));
         const newForm = await FeedbackForm.create({
             title: newTitle,
             description: newDescription,
             targetAudience,
-            questions,
+            questions: sanitized_questions,
             createdBy: creatorId
         })
         if(!newForm)
@@ -136,14 +148,18 @@ const updateForm = async(req, res) => {
             const validation = validateQuestion(questions);
             if(!validation.status)
                 return res.status(400).json({message: validation.message}); 
-            form.questions = questions;
+            form.questions = questions.map(q => ({ 
+                questionText: clean(q.questionText),
+                questionType: q.questionType,
+                options: q.options?.map(option => clean(option))
+            }));
             form.markModified("questions"); // Indicates that the questions field has been modified and should be included in the update
         }
         
         if(typeof title === "string" && title.trim() !== "")
-             form.title = title.trim();
+             form.title = clean(title.trim());
         if(typeof description === "string" && description.trim() !== "") 
-            form.description = description.trim();
+            form.description = clean(description.trim());
         
         await form.save();
         return res.status(200).json({
