@@ -41,6 +41,28 @@ const submitResponse = async (req, res) => {
     }
 }
 
+//admin-only
+const getResponses = async(req, res) => {
+    try {
+        const formId = req.params.id;
+        const form = await FeedbackForm.findById(formId);
+        if(!form)
+            return res.status(404).json({message: "Form not found"});
+        const responses = await FeedbackResponse.find({formId}).select("-respondentId");
+        if(!responses)
+            return res.status(400).json({message: "No responses found"});
+        const totalResponses = responses.length;
+        res.status(200).json({
+            message: "Responses fetched successfully",
+            totalResponses,
+            responses,
+        })
+    } catch(error) {
+        console.error("Error submitting response:", error);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+}
 export {
-    submitResponse
+    submitResponse,
+    getResponses
 }
