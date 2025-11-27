@@ -50,6 +50,11 @@ const feedbackResponseSchema = new mongoose.Schema({
         type: respondentInfoSchema,
         default: undefined,
     },
+    respondentId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        require: true
+    },
     isAnon: {
         type: Boolean,
         default: false
