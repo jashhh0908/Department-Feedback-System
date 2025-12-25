@@ -9,15 +9,16 @@ const ResponseSchema = new mongoose.Schema({
 const respondentInfoSchema = new mongoose.Schema({
     name: { type: String, trim: true },
     email: { type: String },
-    role: {
+    audienceType: {
         type: String,
         enum: ['student', 'alumni', 'employer'],
+        required: true
     },
     batchYear: {
         type: Number,
         validate: {
             validator: function(year) {
-                if(this.role === 'student' || this.role === 'alumni') {
+                if(this.audienceType === 'student' || this.audienceType === 'alumni') {
                     return ( year != null && Number.isInteger(year) && year > 1900 && year < 2100)
                 }
                 return year == null;
@@ -29,7 +30,7 @@ const respondentInfoSchema = new mongoose.Schema({
         type: String,
         validate: {
             validator: function(name) {
-                if(this.role === 'employer') {
+                if(this.audienceType === 'employer') {
                     return name != null && name.length > 0;
                 }
                 return name == null;
@@ -49,11 +50,14 @@ const feedbackResponseSchema = new mongoose.Schema({
     respondentInfo: {
         type: respondentInfoSchema,
         default: undefined,
+        required: function() {
+            return !this.isAnon;    
+        }
     },
     respondentId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-        require: true
+        required: true
     },
     isAnon: {
         type: Boolean,
@@ -81,12 +85,12 @@ feedbackResponseSchema.pre("save", function (next) {
 
     const info = this.respondentInfo;
 
-    if(info.role === 'student' || info.role === 'alumni') 
+    if(info.audienceType === 'student' || info.audienceType === 'alumni') 
         info.companyName = undefined;
 
-    if(info.role == 'employer')
+    if(info.audienceType === 'employer')
         info.batchYear = undefined;
-    if(!info.role){
+    if(!info.audienceType){
         info.batchYear = undefined;
         info.companyName = undefined;
     }
