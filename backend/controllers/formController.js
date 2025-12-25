@@ -116,7 +116,7 @@ const getFormById = async(req, res) => {
         const userRole = req.user.role;
         if(!form)
             return res.status(404).json({message: "Form not found"})
-        if(userRole !== form.targetAudience)
+        if(userRole !== form.targetAudience && form.createdBy.toString() !== req.user.id.toString())
             return res.status(403).json({message: "You are not allowed to access this form"});
         if(form.isArchived) 
             return res.status(410).json({message: "This form is no longer available"});
