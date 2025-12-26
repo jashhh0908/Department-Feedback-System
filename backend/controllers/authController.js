@@ -1,4 +1,4 @@
-    import bcrypt from "bcryptjs";
+import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 import User from "../models/user.model.js";
@@ -143,10 +143,16 @@ const refreshAccessToken = async(req, res) => {
         const user = await User.findById(decoded.id);
         if(!user)
             return res.status(401).json({error: "Unauthorized"});
-        const accessToken = generateAccessToken(user._id, user.role);
+        const accessToken = generateAccessToken(user._id, user.role, user.audienceType);
         res.status(200).json({
             message: "New access token generated",
-            token: accessToken});
+            token: accessToken,
+            userInfo: {
+                name: user.name,
+                role: user.role,
+                audienceType: user.audienceType
+            }
+        });
     } catch (error) {
         console.error("Error in refreshAccessToken: ", error);
         res.status(500).json({error: "Internal server error"});
