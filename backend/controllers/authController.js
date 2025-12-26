@@ -137,8 +137,6 @@ const refreshAccessToken = async(req, res) => {
         if(!refreshToken)
             return res.status(401).json({error: "Unauthorized"});
 
-        console.log('Token:', refreshToken);
-        console.log('Secret:', process.env.JWT_REFRESH_SECRET);
         const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
         const user = await User.findById(decoded.id);
         if(!user)
