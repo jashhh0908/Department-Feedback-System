@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const getAllUsers = async () => {
-    return await axios.get('/api/auth/readUsers');
+    return await axios.get('/api/auth/read');
 }
 
 const deleteUserById = async (userId) => {
