@@ -1,5 +1,6 @@
 import { createContext, useState, useEffect } from "react";
 import axios from "axios";
+import { logoutAPI, refreshAPI } from "../services/authService";
 
 export const AuthContext = createContext();
 
@@ -11,7 +12,7 @@ export const AuthProvider = ({ children }) => {
     const checkAuth = async () => {
         try {
             // This calls your backend refreshAccessToken route
-            const { data } = await axios.post('/api/auth/refreshAccessToken');
+            const { data } = await refreshAPI();
             
             // If successful, we save the user info (name, role, etc.)
             setUser(data.userInfo);
@@ -31,7 +32,7 @@ export const AuthProvider = ({ children }) => {
 
     const logout = async () => {
         try {
-            await axios.post('api/auth/logout');
+            await logoutAPI();
             setUser(null);
             delete axios.defaults.headers.common['Authorization'];
         } catch (error) {

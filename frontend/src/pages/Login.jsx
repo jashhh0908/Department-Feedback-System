@@ -3,6 +3,7 @@ import { useContext, useState } from 'react'
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { AuthContext } from '../context/AuthContext';
+import { loginAPI } from '../services/authService';
 
 const Login = () => {
   const { setUser } = useContext(AuthContext); 
@@ -13,10 +14,7 @@ const Login = () => {
   const loginUser = async(e) => {
     e.preventDefault()
     try {
-      const { data } = await axios.post('/api/auth/login', {
-        email,
-        password
-      });
+      const { data } = await loginAPI(email, password);
       setUser(data.userInfo);
       axios.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
       console.log(data);
