@@ -12,7 +12,7 @@ const Navbar = () => {
   return (
     <nav className="bg-gray-900 border-b border-gray-800 p-4 flex justify-between items-center text-white">
             <div className="text-teal-400 font-bold text-xl">
-                <Link to='/dashboard'>Admin Panel</Link>
+                <Link to='/dashboard'>Admin Dashboard</Link>
             </div>
             
             <div className="flex items-center gap-6">
