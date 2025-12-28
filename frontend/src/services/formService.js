@@ -12,6 +12,9 @@ const getFormById = async (formId) => {
     return await axios.get(`/api/form/get/${formId}`);
 }
 
+const getArchivedForm = async () => {
+    return await axios.get('/api/form/get-archived');
+}
 const updateForm = async (formId, updatedData) => {
     return await axios.get(`/api/form/update/${formId}`, updatedData);
 }
@@ -35,6 +38,7 @@ export {
     createForm,
     getForms,
     getFormById,
+    getArchivedForm,
     updateForm,
     deletePermanently,
     toggleForm,
