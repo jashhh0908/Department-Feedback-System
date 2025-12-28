@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import Sidebar from '../components/Sidebar.jsx';
 import UserManagement from '../components/UserManagement.jsx';
 import Analytics from './Analytics.jsx';
+import FormManagement from '../components/FormManagement.jsx';
 const Dashboard = () => {
     const [activeTab, setActiveTab] = useState("home");
     return (
@@ -16,16 +17,19 @@ const Dashboard = () => {
                         </p>}
                         {activeTab === 'users' && "Managing Users"}
                         {activeTab === 'analytics' && "Viewing Analytics"}
+                        {activeTab === 'forms' && "Managing Forms"}
                     </h1>
                     <p className='text-gray-300'>
                         {activeTab === 'users' && "Here you can manage the users"}
                         {activeTab === 'analytics' && "Here you can view the analytics for the forms"}
+                        {activeTab === 'users' && "Here you can manage your feedback forms"}
                     </p>
                 </header>
 
                 <main>
                     {activeTab === 'users' && <UserManagement />}
-                    {activeTab === 'analytics' && <Analytics     />}
+                    {activeTab === 'analytics' && <Analytics />}
+                    {activeTab === 'forms' && <FormManagement />}
                 </main>
             </div>  
         </div>
