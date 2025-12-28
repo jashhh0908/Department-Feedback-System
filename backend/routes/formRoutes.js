@@ -1,5 +1,5 @@
 import express from "express";
-import { createForm, deactivateForm, deleteForm, getForm, getFormById, reactivateForm, toggleFormStatus, updateForm } from "../controllers/formController.js";
+import { createForm, deactivateForm, deleteForm, getArchivedForm, getForm, getFormById, reactivateForm, toggleFormStatus, updateForm } from "../controllers/formController.js";
 import { verifyToken } from "../middleware/auth.middleware.js";
 import { authorize } from "../middleware/authorize.middleware.js";
 import { getResponses, submitResponse } from "../controllers/responseController.js";
@@ -11,6 +11,7 @@ const router = express.Router();
 router.post('/create', verifyToken, authorize("admin", "super-admin"), createForm);
 router.get('/get', verifyToken, authorize("admin", "super-admin"), getForm);
 router.get('/get/:id', verifyToken, authorize("admin", "super-admin"), getFormById);
+router.get('/get-archived', verifyToken, authorize("admin", "super-admin"), getArchivedForm);
 router.put('/update/:id', verifyToken, authorize("admin", "super-admin"), updateForm);
 router.post('/toggle/:id', verifyToken, authorize("admin", "super-admin"), toggleFormStatus);
 router.post('/deactivate/:id', verifyToken, authorize("admin", "super-admin"), deactivateForm);

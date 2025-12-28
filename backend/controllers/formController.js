@@ -109,6 +109,17 @@ const getForm = async(req, res) => {
     }
 }
 
+const getArchivedForm = async(req, res) => {
+    try {
+        const forms = await FeedbackForm.find({ isArchived: true});
+        return res.status(200).json({
+            message: "Forms retrieved successfully",
+            forms: forms})
+    } catch (error) {
+        console.error("Error in getForm: ", error);
+        return res.status(500).json({message: "Internal Server Error"})
+    }
+}
 const getFormById = async(req, res) => {
     try {
         const formId = req.params.id;
@@ -253,7 +264,6 @@ const deleteForm = async(req, res) => {
     }
 }
 
-//reactivate form(backend-only)
 const reactivateForm = async (req, res) => {
     try {
         const formID = req.params.id;
@@ -279,6 +289,7 @@ export {
     createForm,
     getForm,
     getFormById, 
+    getArchivedForm,
     updateForm,
     toggleFormStatus,
     deactivateForm,
