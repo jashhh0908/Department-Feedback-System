@@ -127,12 +127,19 @@ const getFormById = async(req, res) => {
         const userRole = req.user.role;
         if(!form)
             return res.status(404).json({message: "Form not found"})
-        if(userRole !== form.targetAudience && form.createdBy.toString() !== req.user.id.toString())
-            return res.status(403).json({message: "You are not allowed to access this form"});
-        if(form.isArchived) 
-            return res.status(410).json({message: "This form is no longer available"});
-        if(!form.isActive)
-            return res.status(403).json({message: "Form is closed"});
+
+        const isAdmin = userRole === 'admin' || userRole === 'super-admin';
+        const isOwner = form.createdBy.toString() === req.user.id.toString();
+        const isTargetAudience = req.user.audienceType === form.targetAudience;
+        if (!isAdmin && !isOwner && !isTargetAudience)
+            return res.status(403).json({ message: "You are not the target audience for this form" });
+
+        if (!isAdmin) {
+            if (form.isArchived) 
+                return res.status(410).json({ message: "This form has been archived" });
+            if (!form.isActive) 
+                return res.status(403).json({ message: "This form is currently closed for responses" });
+        }
         return res.status(200).json({
             message: "Form retrieved successfully",
             form: form})

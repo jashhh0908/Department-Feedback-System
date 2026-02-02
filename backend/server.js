@@ -5,6 +5,8 @@ import cors from 'cors';
 import connectDB from './config/connectDB.js';
 import authRoutes from './routes/authRoutes.js';
 import formRoutes from './routes/formRoutes.js';
+import userRoutes from './routes/userRoutes.js';
+
 
 const app = express();
 dotenv.config();
@@ -19,6 +21,7 @@ app.use(cors({
 
 app.use('/api/auth', authRoutes);
 app.use('/api/form', formRoutes);
+app.use('/api/user', userRoutes)
 const startServer = async() => {
     try {
         app.listen(PORT, async () => {

@@ -19,9 +19,6 @@ router.post('/reactivate/:id', verifyToken, authorize("admin", "super-admin"), r
 router.delete('/delete/:id', verifyToken, authorize("admin", "super-admin"), deleteForm);
 router.get('/responses/:id', verifyToken, authorize("admin", "super-admin"), getResponses);    
     
-//user-routes
-router.post('/fill-form/:id', verifyToken, authorize("admin", "super-admin", "user"), submitResponse);
-
 //analytics 
 router.get('/:id/analytics', verifyToken, authorize("admin", "super-admin"), getAnalytics);
 export default router; 
