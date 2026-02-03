@@ -41,6 +41,11 @@ const FormTable = ({ forms, fetchForms, setIsBuilding, fetchArchived, isArchived
         }
     }
     
+    const handleCopyLink = (formId) => {
+    const url = `${window.location.origin}/fill-form/${formId}`;
+    navigator.clipboard.writeText(url);
+    toast.success("Link copied to clipboard!");
+};
     return (
         <>
         <div className="flex justify-between items-end mb-6">
@@ -96,8 +101,17 @@ const FormTable = ({ forms, fetchForms, setIsBuilding, fetchArchived, isArchived
                                 </td>
                                 <td className="p-4 text-right space-x-4">
                                     <div className="flex justify-center items-center gap-3 whitespace-nowrap">
-                                    {!isArchived && <button className="px-2 py-1 text-teal-400 rounded text-[13px]  bg-blue-500/10 border-blue-500/20 hover:text-teal-300 text-sm">Edit</button>}
-                                    
+                                    {!isArchived && (
+                                        <>
+                                                <button 
+                                                    onClick={() => handleCopyLink(form._id)}
+                                                    className="px-2 py-1 text-blue-400 rounded text-[13px] bg-blue-500/10 border border-blue-500/20 hover:bg-blue-500/20 transition flex items-center gap-1"
+                                                >
+                                                    <span className="text-lg leading-none">🔗</span> Share
+                                                </button>
+                                        <button className="px-2 py-1 text-teal-400 rounded text-[13px]  bg-blue-500/10 border-blue-500/20 hover:text-teal-300 text-sm">Edit</button>
+                                        </>
+                                    )} 
                                     <button 
                                         onClick={() => form.isArchived ? unarchiveForm(form._id) : archiveForm(form._id, form.title)}
                                         className={`px-2 py-1 rounded text-[13px] text-sm bg-blue-500/10  font-medium transition ${form.isArchived ? 'text-green-500 hover:text-green-300 text-sm' : 'text-red-400 hover:text-red-500 text-sm'}`}                                            
