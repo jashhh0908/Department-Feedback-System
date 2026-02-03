@@ -1,47 +1,43 @@
 import axios from 'axios';
 
-const createForm = async (formData) => {
+export const createForm = async (formData) => {
     return await axios.post('/api/form/create', formData);
 }
 
-const getForms = async () => {
+export const getForms = async () => {
     return await axios.get('/api/form/get');
 }
 
-const getFormById = async (formId) => {
+export const getFormById = async (formId) => {
     return await axios.get(`/api/form/get/${formId}`);
 }
 
-const getArchivedForm = async () => {
+export const getArchivedForm = async () => {
     return await axios.get('/api/form/get-archived');
 }
-const updateForm = async (formId, updatedData) => {
-    return await axios.get(`/api/form/update/${formId}`, updatedData);
+export const updateForm = async (formId, updatedData) => {
+    return await axios.put(`/api/form/update/${formId}`, updatedData);
 }
 
-const deletePermanently = async (formId) => {
+export const deletePermanently = async (formId) => {
     return await axios.delete(`/api/form/delete/${formId}`);
 }
 
-const toggleForm = async (formId) => {
+export const toggleForm = async (formId) => {
     return await axios.post(`/api/form/toggle/${formId}`);
 }
-const deactivateForm = async (formId) => {
+export const deactivateForm = async (formId) => {
     return await axios.post(`/api/form/deactivate/${formId}`);
 }
 
-const reactivateForm = async (formId) => {
+export const reactivateForm = async (formId) => {
     return await axios.post(`/api/form/reactivate/${formId}`);
 }
 
-export {
-    createForm,
-    getForms,
-    getFormById,
-    getArchivedForm,
-    updateForm,
-    deletePermanently,
-    toggleForm,
-    deactivateForm,
-    reactivateForm
+export const getFormByIdForUser = async (formId) => {
+    return await axios.get(`/api/user/get/${formId}`);
+}
+
+export const submitResponse = async (formId, data) => {
+    return await axios.post(`api/user/fill-form/${formId}`, data);
 }
