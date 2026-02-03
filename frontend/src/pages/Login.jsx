@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { useContext, useState } from 'react'
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { AuthContext } from '../context/AuthContext';
 import { loginAPI } from '../services/authService';
@@ -8,6 +8,7 @@ import { loginAPI } from '../services/authService';
 const Login = () => {
   const { setUser } = useContext(AuthContext); 
   const navigate = useNavigate();
+  const location = useLocation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   
@@ -18,10 +19,13 @@ const Login = () => {
       setUser(data.userInfo);
       axios.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
       console.log(data);
-      if(data.userInfo.role === 'admin' || data.userInfo.role === 'super-admin')
+      const from = location.state?.from?.pathname;
+      if(from)
+        navigate(from, { replace: true });
+      else if(data.userInfo.role === 'admin' || data.userInfo.role === 'super-admin')
         navigate('/dashboard');
       else {
-        navigate('/my-forms');
+        navigate('/');
       }
       toast.success(`Welcome, ${data.userInfo.name}`);
     } catch (error) {
