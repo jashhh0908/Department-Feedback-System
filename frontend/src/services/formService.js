@@ -39,5 +39,9 @@ export const getFormByIdForUser = async (formId) => {
 }
 
 export const submitResponse = async (formId, data) => {
-    return await axios.post(`api/user/fill-form/${formId}`, data);
+    return await axios.post(`/api/user/fill-form/${formId}`, data);
+}
+
+export const getFormAnalytics = async (formId) => {
+    return await axios.get(`/api/form/${formId}/analytics`);
 }
