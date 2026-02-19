@@ -88,7 +88,7 @@ const UserManagement = () => {
                             <td className="p-4 text-right">
                                 <button 
                                     onClick={() => deleteOne(user._id, user.name)}
-                                    className="text-red-500 hover:text-red-400 text-sm font-medium transition"
+                                    className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition"
                                 >
                                     Delete
                                 </button>
