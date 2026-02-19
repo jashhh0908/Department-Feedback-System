@@ -1,33 +1,45 @@
 import React, { useEffect, useState } from 'react';
-import { getFormAnalytics } from '../services/formService';
+import { getFormAnalytics, getForms } from '../services/formService';
 import { 
     BarChart, Bar, XAxis, YAxis, Tooltip, 
     ResponsiveContainer, CartesianGrid, Cell 
 } from 'recharts';
 
 const Analytics = () => {
-    const formId = "694d6d39a5af4adf8b6a4417"; 
-    const [report, setReport] = useState(null);
-    const [loading, setLoading] = useState(true);
-    // 1. Add this state to force a re-render once the DOM is ready
-    const [isMounted, setIsMounted] = useState(false);
+    const [state, setState] = useState({
+        forms: [],
+        selectedForm: null,
+        report: null,
+        loadingForms: true,
+        loadingReport: false,
+        error: ''
+    });
 
     const CHART_COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'];
 
     useEffect(() => {
-        setIsMounted(true); // 2. Trigger chart rendering only after mount
-        const fetchAnalytics = async () => {
+        const fetchAllForms = async () => {
             try {
-                const response = await getFormAnalytics(formId);
-                setReport(response.data);
+                const response = await getForms();
+                setState(prev => ({
+                    ...prev,
+                    forms: response.data.forms || []
+                }));
             } catch (err) {
-                console.error("AXIOS FAILED:", err);
+                setState(prev => ({
+                    ...prev,
+                    error: 'Failed to load forms.'
+                }));
+                console.error('Failed to load forms:', err);
             } finally {
-                setLoading(false);
+                setState(prev => ({
+                    ...prev,
+                    loadingForms: false
+                }));
             }
         };
-        if (formId) fetchAnalytics();
-    }, [formId]);
+        fetchAllForms();
+    }, []);
 
     const formatChartData = (stats) => {
         return Object.entries(stats).map(([label, value]) => ({
@@ -36,69 +48,181 @@ const Analytics = () => {
         }));
     };
 
-    if (loading) return <div className="text-gray-400">Loading insights...</div>;
-    if (!report) return <div className="text-red-400">No data found for this form.</div>;
+    const openFormAnalytics = async (form) => {
+        try {
+            setState(prev => ({
+                ...prev,
+                error: '',
+                loadingReport: true,
+                selectedForm: form
+            }));
+            const response = await getFormAnalytics(form._id);
+            setState(prev => ({
+                ...prev,
+                report: response.data
+            }));
+        } catch (err) {
+            setState(prev => ({
+                ...prev,
+                report: null,
+                error: 'No analytics available for this form yet.'
+            }));
+            console.error('Failed to fetch analytics:', err);
+        } finally {
+            setState(prev => ({
+                ...prev,
+                loadingReport: false
+            }));
+        }
+    };
+
+    const goBackToForms = () => {
+        setState(prev => ({
+            ...prev,
+            selectedForm: null,
+            report: null,
+            error: ''
+        }));
+    };
+
+    if (state.loadingForms) return <div className="text-gray-400">Loading forms...</div>;
+
+    if (!state.selectedForm) {
+        return (
+            <div className="space-y-6 pb-10">
+                <div className="bg-gray-900 p-6 rounded-xl border border-gray-800">
+                    <h2 className="text-xl font-bold text-white">Form Analytics</h2>
+                    <p className="text-gray-400 text-sm mt-1">Select a form to view detailed analytics.</p>
+                </div>
+
+                {state.error && (
+                    <div className="bg-red-900/20 border border-red-800 text-red-300 p-4 rounded-lg text-sm">
+                        {state.error}
+                    </div>
+                )}
+
+                <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+                    <table className="w-full text-left border-collapse table-auto">
+                        <thead>
+                            <tr className="bg-gray-800/50 text-gray-400 text-sm uppercase tracking-widest border-b border-gray-800">
+                                <th className="p-4 font-medium">Form Title</th>
+                                <th className="p-4 font-medium">Target</th>
+                                <th className="p-4 font-medium">Status</th>
+                                <th className="p-4 font-medium text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-800">
+                            {state.forms.map((form) => (
+                                <tr key={form._id} className="hover:bg-gray-800/30 transition">
+                                    <td className="p-4 font-medium">{form.title}</td>
+                                    <td className="p-4 text-gray-300 capitalize">{form.targetAudience}</td>
+                                    <td className="p-4">
+                                        <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${
+                                            form.isActive ? 'bg-emerald-500/20 text-emerald-400' : 'bg-gray-700 text-gray-400'
+                                        }`}>
+                                            {form.isActive ? 'Active' : 'Inactive'}
+                                        </span>
+                                    </td>
+                                    <td className="p-4 text-center">
+                                        <button
+                                            onClick={() => openFormAnalytics(form)}
+                                            className="px-3 py-1.5 text-sm rounded bg-indigo-600 hover:bg-indigo-500 text-white transition"
+                                        >
+                                            View Analytics
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                    {state.forms.length === 0 && (
+                        <div className="p-10 text-center text-gray-500">No forms found.</div>
+                    )}
+                </div>
+            </div>
+        );
+    }
+
+    if (state.loadingReport) return <div className="text-gray-400">Loading insights...</div>;
+
+    if (!state.report) {
+        return (
+            <div className="space-y-4">
+                <button
+                    onClick={goBackToForms}
+                    className="px-3 py-1.5 text-sm rounded bg-gray-800 hover:bg-gray-700 text-white transition"
+                >
+                    Back to Forms
+                </button>
+                <div className="text-red-400">{state.error || 'No data found for this form.'}</div>
+            </div>
+        );
+    }
 
     return (
-        <div className="space-y-6 pb-10"> {/* Added padding-bottom for better scrolling */}
+        <div className="space-y-6 pb-10">
+            <button
+                onClick={goBackToForms}
+                className="px-3 py-1.5 text-sm rounded bg-gray-800 hover:bg-gray-700 text-white transition"
+            >
+                Back to Forms
+            </button>
+
             <div className="bg-gray-900 p-6 rounded-xl border border-gray-800">
-                <h2 className="text-xl font-bold text-white">{report.message}</h2>
+                <h2 className="text-xl font-bold text-white">{state.selectedForm.title}</h2>
+                <p className="text-gray-400 text-sm mt-1">{state.report.message}</p>
             </div>
 
             <div className="grid gap-6">
-                {report.analytics.map((item, idx) => (
+                {state.report.analytics.map((item, idx) => (
                     <div key={item.questionId} className="bg-gray-900 p-6 rounded-xl border border-gray-800">
                         <h3 className="text-md font-medium text-gray-300 mb-6">
                             <span className="text-indigo-500 mr-2">{idx + 1}.</span>
                             {item.question}
                         </h3>
 
-                        {/* MCQ Rendering */}
                         {item.questionType === 'multiple-choice' && (
                           <div style={{ width: '100%', height: '350px', marginTop: '1.5rem' }}>
-                            {isMounted && (
-                              <ResponsiveContainer width="100%" height="100%">
-                                <BarChart
-                                  data={formatChartData(item.stats)}
-                                  margin={{ top: 10, right: 30, left: 0, bottom: 20 }}
-                                >
-                                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#374151" />
-                                  <XAxis
-                                    dataKey="name"
-                                    tick={{ fill: '#9ca3af', fontSize: 11 }}
-                                    axisLine={false}
-                                    tickLine={false}
-                                  />
-                                  <YAxis
-                                    tick={{ fill: '#9ca3af', fontSize: 11 }}
-                                    axisLine={false}
-                                    tickLine={false}
-                                    allowDecimals={false}
-                                  />
-                                  <Tooltip
-                                    cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }}
-                                    contentStyle={{
-                                      backgroundColor: '#111827',
-                                      border: '1px solid #374151',
-                                      borderRadius: '8px'
-                                    }}
-                                    itemStyle={{ color: '#fff' }}
-                                  />
-                                  <Bar dataKey="count" radius={[4, 4, 0, 0]} barSize={40}>
-                                    {formatChartData(item.stats).map((_, i) => (
-                                      <Cell
-                                        key={`cell-${i}`}
-                                        fill={CHART_COLORS[i % CHART_COLORS.length]}
-                                      />
-                                    ))}
-                                  </Bar>
-                                </BarChart>
-                              </ResponsiveContainer>
-                            )}
+                            <ResponsiveContainer width="100%" height="100%">
+                              <BarChart
+                                data={formatChartData(item.stats)}
+                                margin={{ top: 10, right: 30, left: 0, bottom: 20 }}
+                              >
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#374151" />
+                                <XAxis
+                                  dataKey="name"
+                                  tick={{ fill: '#9ca3af', fontSize: 11 }}
+                                  axisLine={false}
+                                  tickLine={false}
+                                />
+                                <YAxis
+                                  tick={{ fill: '#9ca3af', fontSize: 11 }}
+                                  axisLine={false}
+                                  tickLine={false}
+                                  allowDecimals={false}
+                                />
+                                <Tooltip
+                                  cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }}
+                                  contentStyle={{
+                                    backgroundColor: '#111827',
+                                    border: '1px solid #374151',
+                                    borderRadius: '8px'
+                                  }}
+                                  itemStyle={{ color: '#fff' }}
+                                />
+                                <Bar dataKey="count" radius={[4, 4, 0, 0]} barSize={40}>
+                                  {formatChartData(item.stats).map((_, i) => (
+                                    <Cell
+                                      key={`cell-${i}`}
+                                      fill={CHART_COLORS[i % CHART_COLORS.length]}
+                                    />
+                                  ))}
+                                </Bar>
+                              </BarChart>
+                            </ResponsiveContainer>
                           </div>
                         )}
 
-                        {/* Rating Rendering */}
                         {item.questionType === 'rating' && (
                             <div className="flex items-center gap-8">
                                 <div className="bg-gray-800 p-4 rounded-lg min-w-[120px]">
@@ -112,7 +236,6 @@ const Analytics = () => {
                             </div>
                         )}
 
-                        {/* Text Rendering */}
                         {item.questionType === 'text' && (
                             <div className="space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
                                 {item.stats.length > 0 ? (
