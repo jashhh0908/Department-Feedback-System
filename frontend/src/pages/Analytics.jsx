@@ -1,103 +1,98 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { getFormAnalytics, getForms } from '../services/formService';
-import { 
-    BarChart, Bar, XAxis, YAxis, Tooltip, 
-    ResponsiveContainer, CartesianGrid, Cell 
+import {
+    BarChart, Bar, XAxis, YAxis, Tooltip,
+    ResponsiveContainer, CartesianGrid, Cell
 } from 'recharts';
 
+const CHART_COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'];
+
+const formatChartData = (stats) => {
+    return Object.entries(stats).map(([label, value]) => ({
+        name: label,
+        count: value
+    }));
+};
+
 const Analytics = () => {
-    const [state, setState] = useState({
+    const navigate = useNavigate();
+    const { formId } = useParams();
+    const isDetailView = useMemo(() => Boolean(formId), [formId]);
+
+    const [formsState, setFormsState] = useState({
         forms: [],
-        selectedForm: null,
+        loading: true,
+        error: ''
+    });
+    const [detailState, setDetailState] = useState({
         report: null,
-        loadingForms: true,
-        loadingReport: false,
+        loading: true,
         error: ''
     });
 
-    const CHART_COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'];
-
     useEffect(() => {
+        if (isDetailView) return;
+
         const fetchAllForms = async () => {
             try {
                 const response = await getForms();
-                setState(prev => ({
-                    ...prev,
-                    forms: response.data.forms || []
-                }));
+                setFormsState({
+                    forms: response.data.forms || [],
+                    loading: false,
+                    error: ''
+                });
             } catch (err) {
-                setState(prev => ({
-                    ...prev,
-                    error: 'Failed to load forms.'
-                }));
                 console.error('Failed to load forms:', err);
-            } finally {
-                setState(prev => ({
-                    ...prev,
-                    loadingForms: false
-                }));
+                setFormsState({
+                    forms: [],
+                    loading: false,
+                    error: 'Failed to load forms.'
+                });
             }
         };
+
         fetchAllForms();
-    }, []);
+    }, [isDetailView]);
 
-    const formatChartData = (stats) => {
-        return Object.entries(stats).map(([label, value]) => ({
-            name: label,
-            count: value
-        }));
-    };
+    useEffect(() => {
+        if (!isDetailView) return;
 
-    const openFormAnalytics = async (form) => {
-        try {
-            setState(prev => ({
-                ...prev,
-                error: '',
-                loadingReport: true,
-                selectedForm: form
-            }));
-            const response = await getFormAnalytics(form._id);
-            setState(prev => ({
-                ...prev,
-                report: response.data
-            }));
-        } catch (err) {
-            setState(prev => ({
-                ...prev,
-                report: null,
-                error: 'No analytics available for this form yet.'
-            }));
-            console.error('Failed to fetch analytics:', err);
-        } finally {
-            setState(prev => ({
-                ...prev,
-                loadingReport: false
-            }));
-        }
-    };
+        const fetchAnalytics = async () => {
+            setDetailState(prev => ({ ...prev, loading: true, error: '' }));
+            try {
+                const response = await getFormAnalytics(formId);
+                setDetailState({
+                    report: response.data,
+                    loading: false,
+                    error: ''
+                });
+            } catch (err) {
+                console.error('Failed to fetch analytics:', err);
+                setDetailState({
+                    report: null,
+                    loading: false,
+                    error: 'No analytics available for this form yet.'
+                });
+            }
+        };
 
-    const goBackToForms = () => {
-        setState(prev => ({
-            ...prev,
-            selectedForm: null,
-            report: null,
-            error: ''
-        }));
-    };
+        fetchAnalytics();
+    }, [formId, isDetailView]);
 
-    if (state.loadingForms) return <div className="text-gray-400">Loading forms...</div>;
+    if (!isDetailView) {
+        if (formsState.loading) return <div className="text-gray-400">Loading forms...</div>;
 
-    if (!state.selectedForm) {
         return (
             <div className="space-y-6 pb-10">
-                <div className="bg-gray-900 p-6 rounded-xl border border-gray-800">
-                    <h2 className="text-xl font-bold text-white">Form Analytics</h2>
-                    <p className="text-gray-400 text-sm mt-1">Select a form to view detailed analytics.</p>
-                </div>
+                <header>
+                    <h1 className="text-2xl font-bold">Viewing Analytics</h1>
+                    <p className="text-gray-400 mt-2">Select a form to view its analytics.</p>
+                </header>
 
-                {state.error && (
+                {formsState.error && (
                     <div className="bg-red-900/20 border border-red-800 text-red-300 p-4 rounded-lg text-sm">
-                        {state.error}
+                        {formsState.error}
                     </div>
                 )}
 
@@ -112,7 +107,7 @@ const Analytics = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-800">
-                            {state.forms.map((form) => (
+                            {formsState.forms.map((form) => (
                                 <tr key={form._id} className="hover:bg-gray-800/30 transition">
                                     <td className="p-4 font-medium">{form.title}</td>
                                     <td className="p-4 text-gray-300 capitalize">{form.targetAudience}</td>
@@ -125,7 +120,7 @@ const Analytics = () => {
                                     </td>
                                     <td className="p-4 text-center">
                                         <button
-                                            onClick={() => openFormAnalytics(form)}
+                                            onClick={() => navigate(`/dashboard/analytics/${form._id}`)}
                                             className="px-3 py-1.5 text-sm rounded bg-indigo-600 hover:bg-indigo-500 text-white transition"
                                         >
                                             View Analytics
@@ -135,7 +130,7 @@ const Analytics = () => {
                             ))}
                         </tbody>
                     </table>
-                    {state.forms.length === 0 && (
+                    {formsState.forms.length === 0 && (
                         <div className="p-10 text-center text-gray-500">No forms found.</div>
                     )}
                 </div>
@@ -143,18 +138,18 @@ const Analytics = () => {
         );
     }
 
-    if (state.loadingReport) return <div className="text-gray-400">Loading insights...</div>;
+    if (detailState.loading) return <div className="text-gray-400">Loading insights...</div>;
 
-    if (!state.report) {
+    if (!detailState.report) {
         return (
             <div className="space-y-4">
                 <button
-                    onClick={goBackToForms}
+                    onClick={() => navigate('/dashboard/analytics')}
                     className="px-3 py-1.5 text-sm rounded bg-gray-800 hover:bg-gray-700 text-white transition"
                 >
                     Back to Forms
                 </button>
-                <div className="text-red-400">{state.error || 'No data found for this form.'}</div>
+                <div className="text-red-400">{detailState.error || 'No data found for this form.'}</div>
             </div>
         );
     }
@@ -162,19 +157,19 @@ const Analytics = () => {
     return (
         <div className="space-y-6 pb-10">
             <button
-                onClick={goBackToForms}
+                onClick={() => navigate('/dashboard/analytics')}
                 className="px-3 py-1.5 text-sm rounded bg-gray-800 hover:bg-gray-700 text-white transition"
             >
                 Back to Forms
             </button>
 
             <div className="bg-gray-900 p-6 rounded-xl border border-gray-800">
-                <h2 className="text-xl font-bold text-white">{state.selectedForm.title}</h2>
-                <p className="text-gray-400 text-sm mt-1">{state.report.message}</p>
+                <h2 className="text-xl font-bold text-white">Form Analytics</h2>
+                <p className="text-gray-400 text-sm mt-1">{detailState.report.message}</p>
             </div>
 
             <div className="grid gap-6">
-                {state.report.analytics.map((item, idx) => (
+                {detailState.report.analytics.map((item, idx) => (
                     <div key={item.questionId} className="bg-gray-900 p-6 rounded-xl border border-gray-800">
                         <h3 className="text-md font-medium text-gray-300 mb-6">
                             <span className="text-indigo-500 mr-2">{idx + 1}.</span>
@@ -182,45 +177,45 @@ const Analytics = () => {
                         </h3>
 
                         {item.questionType === 'multiple-choice' && (
-                          <div style={{ width: '100%', height: '350px', marginTop: '1.5rem' }}>
-                            <ResponsiveContainer width="100%" height="100%">
-                              <BarChart
-                                data={formatChartData(item.stats)}
-                                margin={{ top: 10, right: 30, left: 0, bottom: 20 }}
-                              >
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#374151" />
-                                <XAxis
-                                  dataKey="name"
-                                  tick={{ fill: '#9ca3af', fontSize: 11 }}
-                                  axisLine={false}
-                                  tickLine={false}
-                                />
-                                <YAxis
-                                  tick={{ fill: '#9ca3af', fontSize: 11 }}
-                                  axisLine={false}
-                                  tickLine={false}
-                                  allowDecimals={false}
-                                />
-                                <Tooltip
-                                  cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }}
-                                  contentStyle={{
-                                    backgroundColor: '#111827',
-                                    border: '1px solid #374151',
-                                    borderRadius: '8px'
-                                  }}
-                                  itemStyle={{ color: '#fff' }}
-                                />
-                                <Bar dataKey="count" radius={[4, 4, 0, 0]} barSize={40}>
-                                  {formatChartData(item.stats).map((_, i) => (
-                                    <Cell
-                                      key={`cell-${i}`}
-                                      fill={CHART_COLORS[i % CHART_COLORS.length]}
-                                    />
-                                  ))}
-                                </Bar>
-                              </BarChart>
-                            </ResponsiveContainer>
-                          </div>
+                            <div style={{ width: '100%', height: '350px', marginTop: '1.5rem' }}>
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart
+                                        data={formatChartData(item.stats)}
+                                        margin={{ top: 10, right: 30, left: 0, bottom: 20 }}
+                                    >
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#374151" />
+                                        <XAxis
+                                            dataKey="name"
+                                            tick={{ fill: '#9ca3af', fontSize: 11 }}
+                                            axisLine={false}
+                                            tickLine={false}
+                                        />
+                                        <YAxis
+                                            tick={{ fill: '#9ca3af', fontSize: 11 }}
+                                            axisLine={false}
+                                            tickLine={false}
+                                            allowDecimals={false}
+                                        />
+                                        <Tooltip
+                                            cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }}
+                                            contentStyle={{
+                                                backgroundColor: '#111827',
+                                                border: '1px solid #374151',
+                                                borderRadius: '8px'
+                                            }}
+                                            itemStyle={{ color: '#fff' }}
+                                        />
+                                        <Bar dataKey="count" radius={[4, 4, 0, 0]} barSize={40}>
+                                            {formatChartData(item.stats).map((_, i) => (
+                                                <Cell
+                                                    key={`cell-${i}`}
+                                                    fill={CHART_COLORS[i % CHART_COLORS.length]}
+                                                />
+                                            ))}
+                                        </Bar>
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
                         )}
 
                         {item.questionType === 'rating' && (
