@@ -1,7 +1,9 @@
 import React, { useState } from 'react'
 import toast from 'react-hot-toast';
 import { createForm } from '../services/formService';
+import { useNavigate } from 'react-router-dom';
 const FormBuilder = ({ onBack, fetchForms }) => {
+    const navigate = useNavigate();
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [targetAudience, setTargetAudience] = useState('student');
@@ -84,8 +86,9 @@ const FormBuilder = ({ onBack, fetchForms }) => {
 
             toast.success("Form Published Successfully!");
 
-            fetchForms(); 
-            onBack();     
+            if (fetchForms) fetchForms();
+            if (onBack) onBack();
+            navigate('/dashboard/forms');
         } catch (error) {
             console.error("Submission Error:", error.response?.data);
             const errorMsg = error.response?.data?.message || "Failed to create form";
@@ -97,7 +100,7 @@ const FormBuilder = ({ onBack, fetchForms }) => {
         <div className="space-y-6 max-w-4xl mx-auto pb-10">
             <div className="flex justify-between items-center bg-gray-900 p-4 rounded-xl border border-gray-800 shadow-lg sticky top-0 z-10">
                 <button 
-                    onClick={onBack} 
+                    onClick={() => (onBack ? onBack() : navigate('/dashboard/forms'))} 
                     className="text-gray-400 hover:text-white transition"
                 >
                     ← Back

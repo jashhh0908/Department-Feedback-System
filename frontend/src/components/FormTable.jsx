@@ -1,19 +1,17 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import toast from 'react-hot-toast';
 import { deactivateForm, reactivateForm, toggleForm } from '../services/formService.js';
+import { useNavigate } from 'react-router-dom';
 
-const FormTable = ({ forms, fetchForms, setIsBuilding, fetchArchived, isArchived }) => {
-    
-    useEffect(() => {
-        fetchForms();
-    }, []);
+const FormTable = ({ forms, fetchForms, fetchArchived, isArchived }) => {
+    const navigate = useNavigate();
 
     const toggle = async (id) => {
         try {
             await toggleForm(id);
             toast.success(`Status updated`);
             isArchived ? fetchArchived() : fetchForms();
-        } catch (error) {
+        } catch {
             toast.error("Failed to update status");
         }
     };
@@ -24,7 +22,7 @@ const FormTable = ({ forms, fetchForms, setIsBuilding, fetchArchived, isArchived
                 await deactivateForm(id);
                 toast.success("Form archived");
                 fetchForms();
-            } catch (error) {
+            } catch {
                 toast.error("Failed to archive form");
             }
         }
@@ -50,7 +48,7 @@ const FormTable = ({ forms, fetchForms, setIsBuilding, fetchArchived, isArchived
         <>
         <div className="flex justify-between items-end mb-6">
             <button 
-                onClick={() => setIsBuilding(true)}
+                onClick={() => navigate('/dashboard/forms/new')}
                 className="bg-teal-600 hover:bg-teal-500 text-white px-3 py-2.5 rounded-lg font-bold text-sm transition-all shadow-lg shadow-teal-900/20 flex items-center gap-2"
             >
             <p className="font-extrabold leading-none">+</p>Create New Form 

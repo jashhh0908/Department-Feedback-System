@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
-import { deactivateForm, getArchivedForm, getForms, reactivateForm, toggleForm } from '../services/formService.js';
-import FormBuilder from './FormBuilder.jsx';
+import { getArchivedForm, getForms } from '../services/formService.js';
 import FormTable from './FormTable.jsx';
+
 const FormManagement = () => {
     const [forms, setForms] = useState([]);
-    const [isBuilding, setIsBuilding] = useState(false);
     const [isArchived, setIsArchived] = useState(false);
+
     const fetchForms = async () => {
         try {
             const { data } = await getForms();
@@ -23,33 +23,24 @@ const FormManagement = () => {
             const { data } = await getArchivedForm();
             setForms(data.forms);    
             setIsArchived(true);
-        } catch (error) {
+        } catch {
             toast.error('Failed');
         }
     }   
     useEffect(() => {
-        fetchForms();
+        const timeoutId = setTimeout(() => {
+            fetchForms();
+        }, 0);
+        return () => clearTimeout(timeoutId);
     }, []);
 
-    const renderTable = () => (
+    return (
         <FormTable 
             forms={forms}
             fetchForms={fetchForms} 
-            setIsBuilding={setIsBuilding}
             fetchArchived={fetchArchived}
             isArchived={isArchived}
         />
-        )
-    const renderBuilder = () => (
-        <FormBuilder 
-            onBack={() => setIsBuilding(false)} 
-            fetchForms={fetchForms} 
-        />
-    );
-    return (
-        <div className='space-y-6'>
-            {isBuilding ? renderBuilder() : renderTable()}
-        </div>
     );
 };
 
