@@ -110,7 +110,17 @@ const Analytics = () => {
                             {formsState.forms.map((form) => (
                                 <tr key={form._id} className="hover:bg-gray-800/30 transition">
                                     <td className="p-4 font-medium">{form.title}</td>
-                                    <td className="p-4 text-gray-300 capitalize">{form.targetAudience}</td>
+                                    <td className="p-4">
+                                    {form.targetAudience === 'student' && <span className="px-2 py-1 rounded text-[10px] font-bold uppercase bg-teal-500/20 text-teal-400">
+                                        Student
+                                    </span>}
+                                    {form.targetAudience === 'alumni' && <span className="px-2 py-1 rounded text-[10px] font-bold uppercase bg-blue-500/20 text-blue-400">
+                                        Alumni
+                                    </span>}
+                                    {form.targetAudience === 'employer' && <span className="px-2 py-1 rounded text-[10px] font-bold uppercase bg-purple-500/20 text-purple-400">
+                                        Employer
+                                    </span>}
+                                    </td>
                                     <td className="p-4">
                                         <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${
                                             form.isActive ? 'bg-emerald-500/20 text-emerald-400' : 'bg-gray-700 text-gray-400'

@@ -88,14 +88,11 @@ const FormTable = ({ forms, fetchForms, fetchArchived, isArchived }) => {
                                     </span>}
                                 </td>   
                                 <td className="p-4">
-                                    <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold tracking-tight border ${
-                                        form.isActive 
-                                        ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
-                                        : 'bg-gray-800 text-gray-500 border-gray-700'
-                                    }`}>
-                                        <span className={`${form.isActive ? 'bg-emerald-500' : 'bg-gray-600'}`}></span>
-                                        {form.isActive ? 'ACTIVE' : 'INACTIVE'}
-                                    </div>  
+                                        <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${
+                                            form.isActive ? 'bg-emerald-500/20 text-emerald-400' : 'bg-gray-700 text-gray-400'
+                                        }`}>
+                                            {form.isActive ? 'Active' : 'Inactive'}
+                                        </span>
                                 </td>
                                 <td className="p-4 text-right space-x-4">
                                     <div className="flex justify-center items-center gap-3 whitespace-nowrap">
