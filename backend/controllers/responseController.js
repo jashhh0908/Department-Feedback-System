@@ -7,7 +7,11 @@ const submitResponse = async (req, res) => {
         const formId = req.params.id;
         const userId = req.user.id;
         const respondentType = req.user.audienceType;
-        const { responses, isAnon } = req.body;
+        const { answers: responses, isAnon } = req.body;
+
+        if (!responses || !Array.isArray(responses)) {
+            return res.status(400).json({ message: "Invalid responses format" });
+        }
 
         const user = await User.findById(userId);
         if(!user)
