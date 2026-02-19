@@ -38,6 +38,14 @@ const createAdmin = async (req, res) => {
 const register = async(req, res) => {
     try {
         const { name, email, password, audienceType, batchYear, companyName} = req.body;
+        if(!audienceType) {
+            return res.status(400).json({message: "Audience Type is required"});
+        }
+        if(audienceType === 'employer' && !companyName)
+            return res.status(400).json({message: "Company Name is required for employer"});
+        if((audienceType === 'student' || audienceType === 'alumni') && !batchYear)
+            return res.status(400).json({message: `Batch year is required for ${audienceType}`});
+        
         const role = 'user';
         const existing = await User.findOne({email});
         if(existing)
