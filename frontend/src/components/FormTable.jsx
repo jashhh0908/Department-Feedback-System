@@ -104,7 +104,12 @@ const FormTable = ({ forms, fetchForms, fetchArchived, isArchived }) => {
                                                 >
                                                     <span className="text-lg leading-none">🔗</span> Share
                                                 </button>
-                                        <button className="px-2 py-1 text-teal-400 rounded text-[13px]  bg-blue-500/10 border-blue-500/20 hover:text-teal-300 text-sm">Edit</button>
+                                        <button
+                                            onClick={() => navigate(`/dashboard/forms/edit/${form._id}`)}
+                                            className="px-2 py-1 text-teal-400 rounded text-[13px] font-medium bg-blue-500/10 border-blue-500/20 hover:text-teal-300 text-sm"
+                                        >
+                                            Edit
+                                        </button>
                                         </>
                                     )} 
                                     <button 

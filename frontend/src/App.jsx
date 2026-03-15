@@ -51,6 +51,13 @@ function App() {
             </AdminLayout>
           </ProtectedRoute>
         }/>
+        <Route path='/dashboard/forms/edit/:formId' element={
+          <ProtectedRoute adminOnly={true}>
+            <AdminLayout>
+              <NewFormPage />
+            </AdminLayout>
+          </ProtectedRoute>
+        }/>
         <Route path='/dashboard/analytics' element={
           <ProtectedRoute adminOnly={true}>
             <AdminLayout>

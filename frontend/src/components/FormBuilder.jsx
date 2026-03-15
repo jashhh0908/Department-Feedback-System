@@ -1,9 +1,11 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import toast from 'react-hot-toast';
-import { createForm } from '../services/formService';
+import { createForm, getFormById, updateForm } from '../services/formService';
 import { useNavigate } from 'react-router-dom';
-const FormBuilder = ({ onBack, fetchForms }) => {
+const FormBuilder = ({ onBack, fetchForms, formId }) => {
     const navigate = useNavigate();
+    const isEditMode = Boolean(formId);
+    const [isLoadingForm, setIsLoadingForm] = useState(false);
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [targetAudience, setTargetAudience] = useState('student');
@@ -12,6 +14,41 @@ const FormBuilder = ({ onBack, fetchForms }) => {
         questionType: 'text',
         options: []
     }]);
+
+    useEffect(() => {
+        if (!isEditMode) return;
+
+        const loadForm = async () => {
+            try {
+                setIsLoadingForm(true);
+                const { data } = await getFormById(formId);
+                const form = data?.form;
+
+                if (!form) {
+                    toast.error("Form not found");
+                    navigate('/dashboard/forms');
+                    return;
+                }
+
+                setTitle(form.title || '');
+                setDescription(form.description || '');
+                setTargetAudience(form.targetAudience || 'student');
+                setQuestions(
+                    Array.isArray(form.questions) && form.questions.length > 0
+                        ? form.questions
+                        : [{ questionText: '', questionType: 'text', options: [] }]
+                );
+            } catch (error) {
+                console.error("Failed to load form:", error);
+                toast.error(error.response?.data?.message || "Failed to load form");
+                navigate('/dashboard/forms');
+            } finally {
+                setIsLoadingForm(false);
+            }
+        };
+
+        loadForm();
+    }, [formId, isEditMode, navigate]);
 
     const addNewQuestion = () => {
         setQuestions([
@@ -82,19 +119,31 @@ const FormBuilder = ({ onBack, fetchForms }) => {
         }
         try {
             console.log("Submitting Form Data:", formData);
-            await createForm(formData);
-
-            toast.success("Form Published Successfully!");
+            if (isEditMode) {
+                await updateForm(formId, formData);
+                toast.success("Form updated successfully!");
+            } else {
+                await createForm(formData);
+                toast.success("Form Published Successfully!");
+            }
 
             if (fetchForms) fetchForms();
             if (onBack) onBack();
             navigate('/dashboard/forms');
         } catch (error) {
             console.error("Submission Error:", error.response?.data);
-            const errorMsg = error.response?.data?.message || "Failed to create form";
+            const errorMsg = error.response?.data?.message || (isEditMode ? "Failed to update form" : "Failed to create form");
             toast.error(errorMsg);
         }
     };
+
+    if (isLoadingForm) {
+        return (
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 text-gray-300">
+                Loading form...
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6 max-w-4xl mx-auto pb-10">
@@ -106,14 +155,14 @@ const FormBuilder = ({ onBack, fetchForms }) => {
                     ← Back
                 </button>
                 <h2 className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-lg font-bold text-white uppercase tracking-wider">
-                    New Form
+                    {isEditMode ? 'Edit Form' : 'New Form'}
                 </h2>
 
                 <button 
                     onClick={submitForm}
                     className="bg-teal-600 hover:bg-teal-500 text-white px-6 py-2 rounded-lg font-bold shadow-lg shadow-teal-900/20 transition-all"
                 >
-                    Create
+                    {isEditMode ? 'Update' : 'Create'}
                 </button>
             </div>
 
